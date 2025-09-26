@@ -1,11 +1,13 @@
-const express = require('express');
-const app = express();
-const PORT = 3000;
+const sequelize = require('../config/database');
+const Hangar = require('./Hangar');
+const InventoryItem = require('./InventoryItem');
 
-app.get('/', (req, res) => {
-  res.send('Hello World!');
-});
+// Define associations here after importing models
+Hangar.hasMany(InventoryItem, { foreignKey: 'locationId', sourceKey: 'hangarId' });
+InventoryItem.belongsTo(Hangar, { foreignKey: 'locationId', targetKey: 'hangarId' });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
+module.exports = {
+  sequelize,
+  Hangar,
+  InventoryItem,
+};

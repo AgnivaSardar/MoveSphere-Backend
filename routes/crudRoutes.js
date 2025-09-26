@@ -1,8 +1,16 @@
 const express = require('express');
-const router = express.Router();
+const { body, param, validationResult } = require('express-validator');
 
-// Pass the Sequelize models as an argument when registering
 const createCrudRoutes = (models) => {
+  const router = express.Router();
+
+  // Validation error handler middleware
+  const handleValidation = (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+    next();
+  };
+
   Object.entries(models).forEach(([modelName, Model]) => {
     const basePath = `/api/${modelName.toLowerCase()}`;
 
@@ -11,55 +19,56 @@ const createCrudRoutes = (models) => {
       try {
         const items = await Model.findAll();
         res.json(items);
-      } catch (e) {
-        res.status(500).json({error: e.message});
+      } catch (error) {
+        res.status(500).json({ error: error.message });
       }
     });
 
-    // GET by id (assumes id field is <modelName>_id, update as needed)
-    router.get(`${basePath}/:id`, async (req, res) => {
+    // GET by id
+    router.get(`${basePath}/:id`, [param('id').notEmpty()], handleValidation, async (req, res) => {
       try {
         const item = await Model.findByPk(req.params.id);
         if (item) res.json(item);
-        else res.status(404).json({error: 'Not found'});
-      } catch (e) {
-        res.status(500).json({error: e.message});
+        else res.status(404).json({ error: `${modelName} not found` });
+      } catch (error) {
+        res.status(500).json({ error: error.message });
       }
     });
 
-    // POST create
-    router.post(basePath, async (req, res) => {
+    // POST create - simple generic validation example (adjust per model)
+    router.post(basePath, [body('id').notEmpty()], handleValidation, async (req, res) => {
       try {
-        const item = await Model.create(req.body);
-        res.status(201).json(item);
-      } catch (e) {
-        res.status(400).json({error: e.message});
+        const newItem = await Model.create(req.body);
+        res.status(201).json(newItem);
+      } catch (error) {
+        res.status(400).json({ error: error.message });
       }
     });
 
     // PUT update
-    router.put(`${basePath}/:id`, async (req, res) => {
+    router.put(`${basePath}/:id`, [param('id').notEmpty()], handleValidation, async (req, res) => {
       try {
-        const [updated] = await Model.update(req.body, { where: { [`${modelName.toLowerCase()}_id`]: req.params.id }});
+        const [updated] = await Model.update(req.body, { where: { id: req.params.id } });
         if (updated) {
           const updatedItem = await Model.findByPk(req.params.id);
           res.json(updatedItem);
-        } else res.status(404).json({error: 'Not found'});
-      } catch (e) {
-        res.status(400).json({error: e.message});
+        } else res.status(404).json({ error: `${modelName} not found` });
+      } catch (error) {
+        res.status(400).json({ error: error.message });
       }
     });
 
-    // DELETE
-    router.delete(`${basePath}/:id`, async (req, res) => {
+    // DELETE by id
+    router.delete(`${basePath}/:id`, [param('id').notEmpty()], handleValidation, async (req, res) => {
       try {
-        const deleted = await Model.destroy({ where: { [`${modelName.toLowerCase()}_id`]: req.params.id }});
-        if (deleted) res.json({success: true});
-        else res.status(404).json({error: 'Not found'});
-      } catch (e) {
-        res.status(400).json({error: e.message});
+        const deleted = await Model.destroy({ where: { id: req.params.id } });
+        if (deleted) res.json({ success: true });
+        else res.status(404).json({ error: `${modelName} not found` });
+      } catch (error) {
+        res.status(400).json({ error: error.message });
       }
     });
+
   });
 
   return router;

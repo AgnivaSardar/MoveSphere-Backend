@@ -2,12 +2,23 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
 const InventoryItem = sequelize.define('InventoryItem', {
-  itemId: { type: DataTypes.STRING, primaryKey: true, field: 'item_id' },
+  itemId: {
+    type: DataTypes.STRING,
+    primaryKey: true,
+    field: 'itemId',
+  },
   description: DataTypes.STRING,
   quantity: DataTypes.INTEGER,
-  reorderThreshold: { type: DataTypes.INTEGER, field: 'reorder_threshold' },
+  reorderThreshold: {
+    type: DataTypes.INTEGER,
+    field: 'reorderThreshold',
+  },
+  locationId: {
+    type: DataTypes.STRING,
+    field: 'locationId',
+  },
 }, {
-  tableName: 'inventory_items',
+  tableName: 'Inventory_Item_Locations',
   timestamps: false,
 });
 
