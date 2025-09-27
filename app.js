@@ -15,7 +15,7 @@ const Employee = require('./models/Employee');
 
 const complianceRoutes = require('./routes/compliance');
 const biddingRoutes = require('./routes/bidding');
-const inventoryRoutes = require('./routes/InventoryItems');
+const inventoryRoutes = require('./routes/inventoryItems');
 const infrastructureRoutes = require('./routes/infrastructure');
 const legalSupportRoutes = require('./routes/legalSupport');
 const mapsRoutes = require('./routes/maps');
